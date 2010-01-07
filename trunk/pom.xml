@@ -1,0 +1,66 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.googlecode</groupId>
+	<artifactId>future</artifactId>
+	<name>GWT Futures</name>
+	<version>0.0.1-SNAPSHOT</version>
+	<description>Future Monads for GWT</description>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>gwt-maven-plugin</artifactId>
+				<version>1.1</version>
+				<configuration>
+					<compileTargets>
+						<value>org.cometd.gwt.NoOpEntryPoint</value>
+					</compileTargets>
+					<!--
+						Note: This plugin needs a run target, but a non-existent one seems
+						sufficient
+					-->
+					<runTarget>org.cometd.gwt.NoOpEntryPoint/nop.html</runTarget>
+					<gen>${project.build.directory}/generated-classes</gen>
+					<logLevel>DEBUG</logLevel>
+					<testSkip>${skipTests}</testSkip>
+					<extraJvmArgs>${gwtJvmMemoryArgs}</extraJvmArgs>
+				</configuration>
+				<executions>
+					<execution>
+						<id>gwt-test</id>
+						<phase>test</phase>
+						<goals>
+							<goal>test</goal>
+						</goals>
+						<configuration>
+							<gen>${project.build.directory}/generated-classes</gen>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+	<dependencies>
+		<dependency>
+			<groupId>com.google.gwt</groupId>
+			<artifactId>gwt-servlet</artifactId>
+			<version>${gwtVersion}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.gwt</groupId>
+			<artifactId>gwt-user</artifactId>
+			<version>${gwtVersion}</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.7</version>
+			<type>jar</type>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+	<properties>
+  	<gwtVersion>1.7.1</gwtVersion>
+	</properties>
+</project>
