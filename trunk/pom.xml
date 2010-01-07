@@ -19,20 +19,13 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>gwt-maven-plugin</artifactId>
-				<version>1.1</version>
+				<version>1.2</version>
 				<configuration>
 					<compileTargets>
-						<value>org.cometd.gwt.NoOpEntryPoint</value>
+						<value>com.googlecode.AsyncFuture</value>
 					</compileTargets>
-					<!--
-						Note: This plugin needs a run target, but a non-existent one seems
-						sufficient
-					-->
-					<runTarget>org.cometd.gwt.NoOpEntryPoint/nop.html</runTarget>
-					<gen>${project.build.directory}/generated-classes</gen>
 					<logLevel>DEBUG</logLevel>
 					<testSkip>${skipTests}</testSkip>
-					<extraJvmArgs>${gwtJvmMemoryArgs}</extraJvmArgs>
 				</configuration>
 				<executions>
 					<execution>
@@ -44,6 +37,11 @@
 						<configuration>
 							<gen>${project.build.directory}/generated-classes</gen>
 						</configuration>
+					</execution>
+					<execution>
+						<goals>
+							<goal>resources</goal>
+						</goals>
 					</execution>
 				</executions>
 			</plugin>
@@ -75,7 +73,7 @@
 			<type>jar</type>
 			<scope>test</scope>
 		</dependency>
-	</dependencies>
+	</dependencies>	
 	<properties>
 		<gwtVersion>1.7.1</gwtVersion>
 	</properties>
