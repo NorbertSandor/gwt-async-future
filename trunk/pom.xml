@@ -2,10 +2,18 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.googlecode</groupId>
-	<artifactId>future</artifactId>
-	<name>GWT Futures</name>
+	<artifactId>gwt-async-future</artifactId>
+	<name>GWT Async Future</name>
 	<version>0.0.1-SNAPSHOT</version>
-	<description>Future Monads for GWT</description>
+	<description>Alternative approach to GWT AsyncCallback using functional programming techniques</description>
+	<ciManagement>
+		<url>http://code.google.com/p/gwt-async-future/issues/list</url>
+	</ciManagement>
+	<scm>
+		<connection>svn</connection>
+		<developerConnection>https://gwt-async-future.googlecode.com/svn/trunk/</developerConnection>
+		<url>http://gwt-async-future.googlecode.com/svn/trunk/</url>
+	</scm>
 	<build>
 		<plugins>
 			<plugin>
@@ -39,6 +47,14 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.5</source>
+					<target>1.5</target>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 	<dependencies>
@@ -61,6 +77,6 @@
 		</dependency>
 	</dependencies>
 	<properties>
-  	<gwtVersion>1.7.1</gwtVersion>
+		<gwtVersion>1.7.1</gwtVersion>
 	</properties>
 </project>
