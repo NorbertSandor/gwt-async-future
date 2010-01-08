@@ -11,7 +11,7 @@ import static org.junit.Assert.*;
  * @author dpovey
  *
  */
-public class FutureTaskTest {
+public class FutureActionTest {
     
     @Test
     public void canEvaluateSimpleFutureTask() {
