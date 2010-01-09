@@ -42,6 +42,12 @@ import java.lang.RuntimeException;
 public class ExecutionException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
+    
+    public static Throwable returnIfCheckedThrowIfUnchecked(Throwable t) {
+        if (t instanceof RuntimeException) throw (RuntimeException)t;
+        if (t instanceof Error) throw (Error) t;
+        return t;
+    }
 
     public ExecutionException(String message, Throwable cause) {
         super(message, cause);

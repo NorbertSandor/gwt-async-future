@@ -233,4 +233,17 @@ public class FutureActionTest {
         future.set(true);
         future.set(false);
     }
+    
+    @Test
+    public void whenRunMethodThrowsExceptionItIsTrappedAndSetExceptionCalled() {
+        FutureAction<Boolean> future = new FutureAction<Boolean>() {            
+            public void run() {
+                throw new NullPointerException();
+            }
+        };
+        FutureResult<Boolean> result = new FutureResult<Boolean>();
+        future.getAsync(result);
+        assertTrue(future.isFailure());
+        assertTrue(future.getException() instanceof NullPointerException);
+    }
 }

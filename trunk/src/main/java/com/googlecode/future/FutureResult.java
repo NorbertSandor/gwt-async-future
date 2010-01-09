@@ -2,8 +2,10 @@ package com.googlecode.future;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import static com.googlecode.future.ExecutionException.returnIfCheckedThrowIfUnchecked;
 
 /**
  * Represents the future results of some operation which may either succeed or fail.
@@ -41,9 +43,11 @@ public class FutureResult<T> implements AsyncCallback<T> {
     
     private Throwable exception = null;
     
-    private boolean isDone = false;
-    
     private LinkedHashSet<AsyncCallback<T>> callbacks = new LinkedHashSet<AsyncCallback<T>>();
+    
+    private enum State { SUCCEEDED, FAILED, INCOMPLETE }
+    
+    private State state = State.INCOMPLETE;
 
     /**
      * Get the result if available.
@@ -52,10 +56,13 @@ public class FutureResult<T> implements AsyncCallback<T> {
      * @throws IncompleteResultException If result is not yet available
      * @throws ExecutionException If operation failed
      */
-    public T get() throws IncompleteResultException, ExecutionException {        
-        if (!isDone) throw new IncompleteResultException(this);
-        if (exception != null) throw new ExecutionException(exception);
-        return value;
+    public T get() throws IncompleteResultException, ExecutionException {
+        switch(state) {
+        case INCOMPLETE: throw new IncompleteResultException(this);
+        case FAILED: throw new ExecutionException(returnIfCheckedThrowIfUnchecked(exception));
+        case SUCCEEDED: return value;
+        }
+        throw new IllegalStateException();
     }
 
     /**
@@ -67,6 +74,11 @@ public class FutureResult<T> implements AsyncCallback<T> {
      * @param callback Callback to invoke
      */
     public void getAsync(AsyncCallback<T> callback) {
+        if (isDone()) {
+            if (isSuccessful()) callback.onSuccess(value);
+            else callback.onFailure(this.exception);
+            return;
+        }
        callbacks.add(callback);
     }
 
@@ -76,28 +88,53 @@ public class FutureResult<T> implements AsyncCallback<T> {
      * @return true if result is available or an exception occurred, false otherwise.
      */
     public boolean isDone() {
-        return isDone;
+        return state != State.INCOMPLETE;
+    }
+    
+    /**
+     * Whether the operation was successful.
+     * 
+     *  @return true if operation succeeded, false if operation failed or is 
+     *      incomplete. 
+     */
+    public boolean isSuccessful() {
+        return state == State.SUCCEEDED;
+    }
+    
+    /**
+     * Whether the operation was successful.
+     * 
+     * @return true if operation failed with an exception, false if operation succeeded or is 
+     *  incomplete. 
+     */
+    public boolean isFailure() {
+        return state == State.FAILED;
+    }
+    
+    /**
+     * Get the exception which was previously set.
+     * 
+     *  @return the exception or null if no exception was set.
+     */
+    public Throwable getException() {
+        return this.exception;
     }
 
     /**
-     * Set 
+     * Set exception.
      * 
-     * @param t
+     * @param t Exception to set.
      */
     public void setException(Throwable t) {
         if (isDone()) {            
             throw new IllegalStateException("Cannot set Future state twice");
         }
-        isDone = true;
+        state = State.FAILED;
         this.exception = t;
-        done();       
-        for (AsyncCallback<T> callback : copyOfCallbacks()) {
+        done();        
+        for (AsyncCallback<T> callback : copyCallbacksThenClear()) {
             callback.onFailure(t);
         }
-    }
-
-    private ArrayList<AsyncCallback<T>> copyOfCallbacks() {
-        return new ArrayList<AsyncCallback<T>>(callbacks);
     }
 
     /**
@@ -109,13 +146,20 @@ public class FutureResult<T> implements AsyncCallback<T> {
         if (isDone()) {            
             throw new IllegalStateException("Cannot set Future state twice");
         }
-        isDone = true;
+        state = State.SUCCEEDED;
         this.value = value;
         done();
-        for (AsyncCallback<T> callback : copyOfCallbacks()) {
+        for (AsyncCallback<T> callback : copyCallbacksThenClear()) {
             callback.onSuccess(value);
         }        
     }
+    
+    private List<AsyncCallback<T>> copyCallbacksThenClear() {
+        List<AsyncCallback<T>> callbacks = new ArrayList<AsyncCallback<T>>(this.callbacks);
+        this.callbacks.clear();
+        return callbacks;
+    }
+    
 
     public final void onFailure(Throwable t) {
         setException(t);

@@ -23,7 +23,7 @@ public abstract class FutureAction<T> extends FutureResult<T> implements Runnabl
     public void getAsync(AsyncCallback<T> callback) {        
         super.getAsync(callback);
         if (!isDone() && !isRunning()) {
-            tryRunningTaskButIgnoreIncompleteResults();
+            tryRunningTaskButIgnoreExceptions();
         }
     }
 
@@ -42,6 +42,8 @@ public abstract class FutureAction<T> extends FutureResult<T> implements Runnabl
             final FutureResult<?> dependency = e.getFuture();
             addDependency(dependency);
             throw new IncompleteResultException(this, e);
+        } catch(Throwable t) {
+            setException(t);
         }
         return super.get();
     }
@@ -84,18 +86,19 @@ public abstract class FutureAction<T> extends FutureResult<T> implements Runnabl
 
                 public void onSuccess(Object result) {
                     dependencies.remove(dependency);                    
-                    tryRunningTaskButIgnoreIncompleteResults();                    
+                    tryRunningTaskButIgnoreExceptions();                    
                 }
                 
             });
         }
     }
     
-    private void tryRunningTaskButIgnoreIncompleteResults() {        
+    private void tryRunningTaskButIgnoreExceptions() {        
         try {
             get();
-        } catch(IncompleteResultException e) {
-            // Squash
+        } catch(Throwable t) {
+            // Squash.  This is a little dangerous however any exceptions should be
+            // caught in the get() method and then set in the result.
         }
     }
 
