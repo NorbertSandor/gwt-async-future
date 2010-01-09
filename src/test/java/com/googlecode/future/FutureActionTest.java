@@ -246,4 +246,59 @@ public class FutureActionTest {
         assertTrue(future.isFailure());
         assertTrue(future.getException() instanceof NullPointerException);
     }
+    
+    @Test
+    public void canCancelActionAndChainedResultsAreAlsoCancelled() {
+        FutureResult<Boolean> actionThatNeverCompletes = new FutureAction<Boolean>() {            
+            public void run() {
+                return;
+            }
+        };
+        
+        FutureResult<Boolean> result = new FutureResult<Boolean>();
+        actionThatNeverCompletes.getAsync(result);
+        actionThatNeverCompletes.cancel();
+        assertTrue(result.isCancelled());
+        
+    }
+    
+    @Test
+    public void whenActionIsCancelledSubsequentChainedActionsAreNotRun() {
+        final RunLoopSimulator runloop = new RunLoopSimulator();
+        final FutureAction<Boolean> first = new FutureAction<Boolean>() {
+            public void run() {
+               cancel(); 
+            }
+        };
+                
+        final FutureAction<Boolean> second = new FutureAction<Boolean>() {
+            public void run() {
+                runloop.setValueLater(first.get(), this);
+            }
+        };
+        
+        final FutureAction<Boolean> third = new FutureAction<Boolean>() {
+            public void run() {
+                set(first.get());
+                throw new AssertionError("Should not be reached");
+            }
+        };        
+        
+        final FutureAction<Boolean> fourth = new FutureAction<Boolean>() {
+            public void run() {
+                set(second.get());
+                throw new AssertionError("Should not be reached");
+            }
+        };
+       
+        FutureResult<Boolean> result1 = new FutureResult<Boolean>();
+        third.getAsync(result1);
+        FutureResult<Boolean> result2 = new FutureResult<Boolean>();
+        fourth.getAsync(result2);
+        assertTrue(first.isCancelled());
+        runloop.run();
+        assertTrue(result1.isCancelled());
+        assertTrue(result2.isCancelled());
+        
+    }
 }

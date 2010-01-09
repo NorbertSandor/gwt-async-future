@@ -43,9 +43,9 @@ public class FutureResult<T> implements AsyncCallback<T> {
     
     private Throwable exception = null;
     
-    private LinkedHashSet<AsyncCallback<T>> callbacks = new LinkedHashSet<AsyncCallback<T>>();
+    private LinkedHashSet<AsyncCallback<T>> listeners = new LinkedHashSet<AsyncCallback<T>>();
     
-    private enum State { SUCCEEDED, FAILED, INCOMPLETE }
+    private enum State { SUCCEEDED, FAILED, INCOMPLETE, CANCELLED }
     
     private State state = State.INCOMPLETE;
 
@@ -60,7 +60,9 @@ public class FutureResult<T> implements AsyncCallback<T> {
         switch(state) {
         case INCOMPLETE: throw new IncompleteResultException(this);
         case FAILED: throw new ExecutionException(returnIfCheckedThrowIfUnchecked(exception));
+        case CANCELLED: throw new CancelledException();
         case SUCCEEDED: return value;
+         
         }
         throw new IllegalStateException();
     }
@@ -79,13 +81,14 @@ public class FutureResult<T> implements AsyncCallback<T> {
             else callback.onFailure(this.exception);
             return;
         }
-       callbacks.add(callback);
+       listeners.add(callback);
     }
 
     /**
      * Whether a result is available.
      * 
-     * @return true if result is available or an exception occurred, false otherwise.
+     * @return true if result is available, was cancelled, or an exception
+     *         occurred, false otherwise.
      */
     public boolean isDone() {
         return state != State.INCOMPLETE;
@@ -132,9 +135,7 @@ public class FutureResult<T> implements AsyncCallback<T> {
         state = State.FAILED;
         this.exception = t;
         done();        
-        for (AsyncCallback<T> callback : copyCallbacksThenClear()) {
-            callback.onFailure(t);
-        }
+        notifyListenersOnFailure();
     }
 
     /**
@@ -149,20 +150,25 @@ public class FutureResult<T> implements AsyncCallback<T> {
         state = State.SUCCEEDED;
         this.value = value;
         done();
+        notifyListenersOnSuccess(value);        
+    }
+
+    private void notifyListenersOnSuccess(T value) {
         for (AsyncCallback<T> callback : copyCallbacksThenClear()) {
             callback.onSuccess(value);
-        }        
+        }
     }
     
     private List<AsyncCallback<T>> copyCallbacksThenClear() {
-        List<AsyncCallback<T>> callbacks = new ArrayList<AsyncCallback<T>>(this.callbacks);
-        this.callbacks.clear();
+        List<AsyncCallback<T>> callbacks = new ArrayList<AsyncCallback<T>>(this.listeners);
+        this.listeners.clear();
         return callbacks;
     }
     
 
     public final void onFailure(Throwable t) {
-        setException(t);
+        if (t instanceof CancelledException) cancel();
+        else setException(t);
     }
 
     public final void onSuccess(T value) {
@@ -174,6 +180,25 @@ public class FutureResult<T> implements AsyncCallback<T> {
      * may override this to provide custom processing.
      */
     protected void done() {        
+    }
+
+    public void cancel() {
+        if (isDone()) return;
+        state = State.CANCELLED;
+        this.exception = new CancelledException();
+        done();        
+        notifyListenersOnFailure();
+        
+    }
+
+    private void notifyListenersOnFailure() {
+        for (AsyncCallback<T> callback : copyCallbacksThenClear()) {
+            callback.onFailure(this.exception);
+        }
+    }
+
+    public boolean isCancelled() {
+        return state == State.CANCELLED;
     }
 
 }
