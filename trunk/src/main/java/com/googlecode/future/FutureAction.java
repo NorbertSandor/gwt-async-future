@@ -59,6 +59,12 @@ public abstract class FutureAction<T> extends FutureResult<T> implements Runnabl
         setRunning(false);
         super.setException(t);
     }
+    
+    @Override
+    public void cancel() {
+        setRunning(false);
+        super.cancel();
+    }
 
     private void setRunning(boolean b) {
         assert !hasUnresolvedDependencies();
