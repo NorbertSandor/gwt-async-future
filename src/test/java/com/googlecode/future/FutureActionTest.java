@@ -301,4 +301,15 @@ public class FutureActionTest {
         assertTrue(result2.isCancelled());
         
     }
+    
+    @Test
+    public void canCreatePresentResult() {
+        final PresentResult<Boolean> existing = PresentResult.presentResult(true);
+        FutureAction<Boolean> result = new FutureAction<Boolean>() {            
+            public void run() {
+                set(existing.get());
+            }
+        };
+        assertTrue(result.get());
+    }
 }
