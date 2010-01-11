@@ -76,6 +76,7 @@ public class FutureResult<T> implements AsyncCallback<T> {
      * @param callback Callback to invoke
      */
     public void getAsync(AsyncCallback<T> callback) {
+        if (callback == null) return;
         if (isDone()) {
             if (isSuccessful()) callback.onSuccess(value);
             else callback.onFailure(this.exception);
@@ -199,6 +200,15 @@ public class FutureResult<T> implements AsyncCallback<T> {
 
     public boolean isCancelled() {
         return state == State.CANCELLED;
+    }
+    
+    /**
+     * Evaluate the result but do not register a callback to be notified when complete.
+     * This should be used to evaluate a chain of actions where the eventual final
+     * result is not needed.
+     */
+    public void eval() {
+        getAsync(null);
     }
 
 }

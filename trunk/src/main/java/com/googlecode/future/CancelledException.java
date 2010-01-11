@@ -3,7 +3,7 @@ package com.googlecode.future;
 /**
  * Exception thrown when a {@link FutureResult} or {@link FutureAction} has been cancelled.
  * 
- * @author dpovey
+ * @author Dean Povey
  *
  */
 public class CancelledException extends RuntimeException {

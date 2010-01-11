@@ -8,8 +8,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 /**
  * An action that will complete at some time in the future.
  * 
- * 
- * @author dpovey
+ * @author Dean Povey
  *
  * @param <T> Type of result
  */
@@ -67,7 +66,6 @@ public abstract class FutureAction<T> extends FutureResult<T> implements Runnabl
     }
 
     private void setRunning(boolean b) {
-        assert !hasUnresolvedDependencies();
         hasStarted = b;
     }
 
@@ -86,7 +84,8 @@ public abstract class FutureAction<T> extends FutureResult<T> implements Runnabl
             dependency.getAsync(new AsyncCallback() {
 
                 public void onFailure(Throwable t) {
-                    FutureAction.this.onFailure(
+                    if (t instanceof CancelledException) FutureAction.this.cancel();
+                    else FutureAction.this.onFailure(
                             new ExecutionException("Failure resolving dependency", t));
                 }
 

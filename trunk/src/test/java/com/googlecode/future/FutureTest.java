@@ -8,10 +8,10 @@ import static org.junit.Assert.*;
 /**
  * Test of FutureTask
  * 
- * @author dpovey
+ * @author Dean Povey
  *
  */
-public class FutureActionTest {
+public class FutureTest {
     
     @Test
     public void canEvaluateSimpleFutureTask() {
@@ -304,7 +304,7 @@ public class FutureActionTest {
     
     @Test
     public void canCreatePresentResult() {
-        final PresentResult<Boolean> existing = PresentResult.presentResult(true);
+        final ConstantResult<Boolean> existing = ConstantResult.constant(true);
         FutureAction<Boolean> result = new FutureAction<Boolean>() {            
             public void run() {
                 set(existing.get());
@@ -312,4 +312,19 @@ public class FutureActionTest {
         };
         assertTrue(result.get());
     }
+    
+    @Test
+    public void whenEvalCalledResultEvaluatedButNotReturned() {
+        FutureAction<Boolean> action = new FutureAction<Boolean>() {
+            public void run() {
+                set(true);
+            }
+        };
+        
+        // Run action but do not set callback on result
+        action.eval();        
+        assertTrue(action.get());
+        
+    }
+        
 }
