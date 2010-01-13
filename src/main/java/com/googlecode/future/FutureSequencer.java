@@ -28,7 +28,7 @@ public class FutureSequencer extends FutureAction<Boolean> {
     }
 
     public void run() {
-        for (FutureResult<?> result : resultsToSequeunce) {
+        for (Future<?> result : resultsToSequeunce) {
             result.get();
         }
         set(true);

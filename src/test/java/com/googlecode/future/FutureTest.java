@@ -222,14 +222,14 @@ public class FutureTest {
     
     @Test(expected=IllegalStateException.class)
     public void cannotSetBothValueAndException() {
-        FutureResult<Boolean> future = new FutureResult<Boolean>();
+        Future<Boolean> future = new FutureResult<Boolean>();
         future.set(true);
         future.setException(new Exception());
     }
     
     @Test(expected=IllegalStateException.class)
     public void cannotSetValueTwice() {
-        FutureResult<Boolean> future = new FutureResult<Boolean>();
+        Future<Boolean> future = new FutureResult<Boolean>();
         future.set(true);
         future.set(false);
     }
@@ -249,7 +249,7 @@ public class FutureTest {
     
     @Test
     public void canCancelActionAndChainedResultsAreAlsoCancelled() {
-        FutureResult<Boolean> actionThatNeverCompletes = new FutureAction<Boolean>() {            
+        Future<Boolean> actionThatNeverCompletes = new FutureAction<Boolean>() {            
             public void run() {
                 return;
             }
