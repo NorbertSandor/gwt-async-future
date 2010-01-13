@@ -29,11 +29,11 @@ public class FutureSynchronizer extends FutureAction<Boolean> {
     }
 
     public void run() {
-        for (FutureResult<?> result : resultsToSynchronizeWith) {
+        for (Future<?> result : resultsToSynchronizeWith) {
             result.eval();
         }
         
-        for (FutureResult<?> result : resultsToSynchronizeWith) {                
+        for (Future<?> result : resultsToSynchronizeWith) {                
             if (!result.isDone()) {
                 try {
                     result.get();

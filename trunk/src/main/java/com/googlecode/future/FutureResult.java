@@ -10,13 +10,6 @@ import static com.googlecode.future.ExecutionException.returnIfCheckedThrowIfUnc
 /**
  * Represents the future results of some operation which may either succeed or fail.
  * 
- * <p>{@link FutureResult} provides an alternative way to process asynchronous operations.  Rather
- * than providing a callback, a FutureResult is either passed in or returned from an asynchronous
- * method.  When a result is available it may be obtained by using the {@link get} method.  If 
- * get is called and no results are available then an {@link IncompleteResultException} will be
- * thrown.  If the operation threw an exception then an {@link ExecutionException} will be thrown
- * with the underlying cause.
- * 
  *  <p>FutureResult may be used as a replacement for an {@link AsyncCallback}, for example:
  *  
  *  <code><pre>
@@ -37,7 +30,7 @@ import static com.googlecode.future.ExecutionException.returnIfCheckedThrowIfUnc
  *
  * @param <T> Type of result
  */
-public class FutureResult<T> implements AsyncCallback<T> {
+public class FutureResult<T> implements CancellableAsyncCallback<T>, Future<T> {
     
     private T value = null;
     
@@ -168,12 +161,16 @@ public class FutureResult<T> implements AsyncCallback<T> {
     
 
     public final void onFailure(Throwable t) {
-        if (t instanceof CancelledException) cancel();
+        if (t instanceof CancelledException) onCancel();
         else setException(t);
     }
 
     public final void onSuccess(T value) {
         set(value);
+    }
+    
+    public final void onCancel() {
+        cancel();
     }
     
     /**
@@ -188,13 +185,21 @@ public class FutureResult<T> implements AsyncCallback<T> {
         state = State.CANCELLED;
         this.exception = new CancelledException();
         done();        
-        notifyListenersOnFailure();
+        notifyListenersOnCancel();
         
     }
 
     private void notifyListenersOnFailure() {
         for (AsyncCallback<T> callback : copyCallbacksThenClear()) {
             callback.onFailure(this.exception);
+        }
+    }
+    
+    private void notifyListenersOnCancel() {
+        for (AsyncCallback<T> callback : copyCallbacksThenClear()) {
+            if (callback instanceof CancellableAsyncCallback<?>) {
+                ((CancellableAsyncCallback<?>) callback).onCancel();                
+            } else callback.onFailure(this.exception);
         }
     }
 
