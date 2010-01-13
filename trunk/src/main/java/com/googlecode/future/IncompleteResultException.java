@@ -13,18 +13,18 @@ public class IncompleteResultException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
     
-    private final FutureResult<?> future;
+    private final Future<?> future;
 
-    public IncompleteResultException(FutureResult<?> future) {
+    public IncompleteResultException(Future<?> future) {
         this.future = future;
     }
 
-    public IncompleteResultException(FutureResult<?> future, Throwable cause) {
+    public IncompleteResultException(Future<?> future, Throwable cause) {
         this(future);
         initCause(cause);
     }
 
-    public FutureResult<?> getFuture() {
+    public Future<?> getFuture() {
         return future;
     }
 
