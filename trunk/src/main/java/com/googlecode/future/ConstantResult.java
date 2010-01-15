@@ -7,7 +7,7 @@ package com.googlecode.future;
  *
  * @param <T> Type of result
  */
-public class ConstantResult<T> extends FutureResult<T> {
+public class ConstantResult<T> extends FutureResult<T> implements AutoFuture<T> {
         
     /**
      * Create a PresentResult with the given value.
