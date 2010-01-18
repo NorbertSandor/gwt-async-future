@@ -7,8 +7,8 @@ import java.util.List;
 import static java.util.Arrays.asList;
 
 /**
- * A FutureResult that returns true when one or more other results have values. If one
- * ore more of the synchronized results is cancelled then the FutureSynchronizer will be
+ * A Future that returns true when one or more other results have values. If one
+ * or more of the synchronized results is cancelled then the FutureSynchronizer will be
  * cancelled, however if one or more results fails with an exception then that exception
  * will not be propagated to the FutureSynchronizer instance and it will still succeed.
  * 
@@ -17,15 +17,15 @@ import static java.util.Arrays.asList;
  */
 public class FutureSynchronizer extends FutureAction<Boolean> {
    
-    private List<FutureResult<?>> resultsToSynchronizeWith;
+    private List<Future<?>> resultsToSynchronizeWith;
     
-    public FutureSynchronizer(FutureResult<?>...resultsToSynchronizeWith) {
+    public FutureSynchronizer(Future<?>...resultsToSynchronizeWith) {
         this.resultsToSynchronizeWith = asList(resultsToSynchronizeWith);
     }
 
     public FutureSynchronizer(
-            Collection<FutureResult<Integer>> resultsToSynchronizeWith) {
-        this.resultsToSynchronizeWith = new ArrayList<FutureResult<?>>(resultsToSynchronizeWith);
+            Collection<? extends Future<?>> resultsToSynchronizeWith) {
+        this.resultsToSynchronizeWith = new ArrayList<Future<?>>(resultsToSynchronizeWith);
     }
 
     public void run() {
