@@ -85,6 +85,11 @@ public interface Future<T> {
      * @param value Value to set.
      */
     public abstract void set(T value);
+    
+    /**
+     * Set the result to an empty value (e.g. null).
+     */
+    public abstract void setEmpty();
 
     public abstract void cancel();
 

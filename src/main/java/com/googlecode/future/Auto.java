@@ -62,9 +62,13 @@ public class Auto<T> implements AutoFuture<T> {
         future.set(value);
     }
 
+    public void setEmpty() {
+        future.setEmpty();
+    }
+    
     public void setException(Throwable t) {
         future.setException(t);
     }
 
-
+    
 }
