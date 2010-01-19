@@ -5,9 +5,13 @@ import java.util.List;
 
 
 /**
- * A future that evaluates a series of futures in sequence and returns when one
+ * A future that evaluates a series of futures in sequence and completes when one
  * of them fufills the criteria of the {@link isFinished} method.  If this method
  * is not overriden then the default implementation checks for a non-null value.
+ * 
+ * <p>If not result satisfies the criteria the future will complete by calling 
+ * setEmpty which will set the result to null.  Subclasses may override this method
+ * to set a specific value.
  * 
  * @author Dean Povey
  *
@@ -38,7 +42,7 @@ public class FutureDelegator<T> extends FutureAction<T> {
                 return;
             }
         }
-        set(null);
+        setEmpty();
     }
 
     public boolean isFinished(T result) {

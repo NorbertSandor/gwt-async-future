@@ -133,7 +133,7 @@ public class FutureResult<T> implements CancellableAsyncCallback<T>, Future<T> {
     }
 
     /**
-     * Used to set a FutureResult value.  In general this should not be called directly.
+     * Used to set a FutureResult value.
      * 
      * @param value Value to set.
      */
@@ -147,6 +147,11 @@ public class FutureResult<T> implements CancellableAsyncCallback<T>, Future<T> {
         notifyListenersOnSuccess(value);        
     }
 
+    public void setEmpty() {
+        set(null);
+    }
+
+    
     private void notifyListenersOnSuccess(T value) {
         for (AsyncCallback<T> callback : copyCallbacksThenClear()) {
             callback.onSuccess(value);
