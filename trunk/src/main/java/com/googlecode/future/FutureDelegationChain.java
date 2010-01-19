@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * A future that evaluates a series of dependent futures in sequence until one
  * of them satisfies the criteria of the {@link isFinished} method. If this
- * method is not overriden then the default implementation checks for a non-null
+ * method is not overridden then the default implementation checks for a non-null
  * value.
  * 
  * <p>
@@ -48,7 +48,7 @@ public class FutureDelegationChain<T> extends FutureAction<T> {
     }
 
     /**
-     * Called to see if the given future satisifes this request.
+     * Called to see if the given future satisfies this request.
      * 
      * @param result
      * @return
