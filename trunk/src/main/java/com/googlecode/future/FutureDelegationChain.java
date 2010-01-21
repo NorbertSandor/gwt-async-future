@@ -23,6 +23,14 @@ public class FutureDelegationChain<T> extends FutureAction<T> {
     private final List<Future<T>> futures = new ArrayList<Future<T>>();
     private int nextFuture = 0;
     
+    public static <T> FutureDelegationChain<T> delegationChain(Future<T>...futures) {
+        return new FutureDelegationChain<T>(futures);
+    }
+    
+    public static <T> FutureDelegationChain<T> delegationChain(Iterable<Future<T>> futures) {
+        return new FutureDelegationChain<T>(futures);
+    }
+    
     public FutureDelegationChain(Future<T>...futures) {
         for (Future<T> future : futures) {
             this.futures.add(future);
