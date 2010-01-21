@@ -128,7 +128,7 @@ public class FutureResult<T> implements CancellableAsyncCallback<T>, Future<T> {
         }
         state = State.FAILED;
         this.exception = t;
-        done();        
+        onCompleted();        
         notifyListenersOnFailure();
     }
 
@@ -143,7 +143,7 @@ public class FutureResult<T> implements CancellableAsyncCallback<T>, Future<T> {
         }
         state = State.SUCCEEDED;
         this.value = value;
-        done();
+        onCompleted();
         notifyListenersOnSuccess(value);        
     }
 
@@ -182,14 +182,14 @@ public class FutureResult<T> implements CancellableAsyncCallback<T>, Future<T> {
      * Method called when either a result becomes available or an exception is set. Subclasses
      * may override this to provide custom processing.
      */
-    protected void done() {        
+    protected void onCompleted() {        
     }
 
     public void cancel() {
         if (isDone()) return;
         state = State.CANCELLED;
         this.exception = new CancelledException();
-        done();        
+        onCompleted();        
         notifyListenersOnCancel();
         
     }
