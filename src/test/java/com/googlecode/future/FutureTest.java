@@ -263,6 +263,28 @@ public class FutureTest {
     }
     
     @Test
+    public void canOverideCancel() {
+        Future<Boolean> trueIfItSucceedsFalseIfCancelled = new FutureAction<Boolean>() {            
+            public void run() {
+                return;
+            }
+
+            @Override
+            public void onCancel() {
+                set(true);
+            }
+            
+        };
+        
+        FutureResult<Boolean> result = new FutureResult<Boolean>();
+        trueIfItSucceedsFalseIfCancelled.getAsync(result);
+        trueIfItSucceedsFalseIfCancelled.cancel();
+        assertFalse(result.isCancelled());
+        assertTrue(result.get());
+        
+    }
+    
+    @Test
     public void whenActionIsCancelledSubsequentChainedActionsAreNotRun() {
         final RunLoopSimulator runloop = new RunLoopSimulator();
         final FutureAction<Boolean> first = new FutureAction<Boolean>() {
