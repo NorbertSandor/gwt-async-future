@@ -165,17 +165,31 @@ public class FutureResult<T> implements CancellableAsyncCallback<T>, Future<T> {
     }
     
 
-    public final void onFailure(Throwable t) {
+    public void onFailure(Throwable t) {
         if (t instanceof CancelledException) onCancel();
         else setException(t);
     }
 
-    public final void onSuccess(T value) {
+    public void onSuccess(T value) {
         set(value);
     }
     
-    public final void onCancel() {
-        cancel();
+    public void onCancel() {
+        setCancelled();
+    }
+
+    /**
+     * Sets the state of this result to cancelled.  This method is distinct from simply calling
+     * cancel which calls the onCancel method which may be overriden by subclasses.  This will
+     * set the state of the future to cancelled (so that isCancelled returns true) and set
+     * a CancelledException.
+     */
+    protected void setCancelled() {
+        if (isDone()) return;
+        state = State.CANCELLED;
+        this.exception = new CancelledException();
+        onCompleted();        
+        notifyListenersOnCancel();
     }
     
     /**
@@ -186,12 +200,7 @@ public class FutureResult<T> implements CancellableAsyncCallback<T>, Future<T> {
     }
 
     public void cancel() {
-        if (isDone()) return;
-        state = State.CANCELLED;
-        this.exception = new CancelledException();
-        onCompleted();        
-        notifyListenersOnCancel();
-        
+        onCancel();     
     }
 
     private void notifyListenersOnFailure() {

@@ -102,6 +102,8 @@ public abstract class FutureAction<T> extends FutureResult<T> implements Runnabl
             final Future<?> dependency = e.getFuture();
             addDependency(dependency);
             throw new IncompleteResultException(this, e);
+        } catch(CancelledException e) {
+            onCancel();
         } catch(Throwable t) {
             setException(t);
         }
@@ -123,7 +125,7 @@ public abstract class FutureAction<T> extends FutureResult<T> implements Runnabl
     @Override
     public void cancel() {
         setRunning(false);
-        super.cancel();
+        onCancel();
     }
 
     private void setRunning(boolean b) {
