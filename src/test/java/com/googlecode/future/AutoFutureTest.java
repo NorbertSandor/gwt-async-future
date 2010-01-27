@@ -10,21 +10,21 @@ public class AutoFutureTest {
     public void wrappedAutoFutureIsAlwaysEvaluated() {
         AutoFuture<Boolean> auto = auto(new FutureAction<Boolean>() {
             public void run() {
-                set(true);
+                returnResult(true);
             }
         });
-        assertTrue(auto.isDone());
-        assertTrue(auto.get());       
+        assertTrue(auto.isComplete());
+        assertTrue(auto.result());       
     }
     
     @Test
     public void autoFutureActionIsAlwaysEvaluated() {
         AutoFuture<Boolean> auto = new AutoFutureAction<Boolean>() {
             public void run() {
-                set(true);
+                returnResult(true);
             }
         };
-        assertTrue(auto.isDone());
-        assertTrue(auto.get());       
+        assertTrue(auto.isComplete());
+        assertTrue(auto.result());       
     }
 }

@@ -3,8 +3,8 @@ package com.googlecode.future;
 import java.lang.RuntimeException;
 
 /**
- * <p>An {@link ExecutionException} is thrown from {@link FutureResult#get()} or
- * {@link FutureAction#get()} to indicate that an operation failed.  It allows the wrapped
+ * <p>An {@link ExecutionException} is thrown from {@link FutureResult#result()} or
+ * {@link FutureAction#result()} to indicate that an operation failed.  It allows the wrapped
  * exception to be rethrown and provides handling for processing checked exceptions or
  * rethrowing unchecked exceptions.
  * <p>

@@ -11,37 +11,37 @@ public class FutureDelegationChainTest {
     @SuppressWarnings("unchecked")
     @Test
     public void withNoDelegatesReturnsNull() {
-        FutureDelegationChain<Boolean> result = new FutureDelegationChain<Boolean>();
-        assertNull(result.get());
+        FutureDelegationChain<Boolean> noDelegateChain = new FutureDelegationChain<Boolean>();
+        assertNull(noDelegateChain.result());
     }
     
     @SuppressWarnings("unchecked")
     @Test
     public void withSingleDelegateReturnsResult() {
-        FutureDelegationChain<Boolean> result = 
+        FutureDelegationChain<Boolean> singleDelegateChain = 
             new FutureDelegationChain<Boolean>(constant(true));
-        assertTrue(result.get());
+        assertTrue(singleDelegateChain.result());
     }
     
     @SuppressWarnings("unchecked")
     @Test
     public void withMultipleDelegatesReturnsFirstNonNullResult() {
-        FutureDelegationChain<Integer> result = 
+        FutureDelegationChain<Integer> getFirstNonNull = 
             new FutureDelegationChain<Integer>(constant((Integer)null), constant(1), constant(2));
-        assertEquals(1, (int)result.get());
+        assertEquals(1, (int)getFirstNonNull.result());
     }
     
     @SuppressWarnings("unchecked")
     @Test
     public void withCustomIsFinishedReturnsFirstValidResult() {
-        FutureDelegationChain<Integer> result = 
+        FutureDelegationChain<Integer> getFirstValid = 
             new FutureDelegationChain<Integer>(constant(1), constant(2), constant(3)) {
             @Override
             public boolean isFinished(Integer result) {
                 return result > 2; 
             }
         };
-        assertEquals(3, (int)result.get());
+        assertEquals(3, (int)getFirstValid.result());
     }
 
 }

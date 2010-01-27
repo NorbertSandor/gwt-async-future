@@ -15,32 +15,31 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
  * it must ensure that any references to other {@link Future} instances happen
  * before any side-effects. This quirk comes about because of the way a
  * FutureAction evaluates its run method. If a dependent Future is incomplete,
- * accessing it via {@link #get()} will throw an IncompleteResultException
- * including a reference to the Future which is incomplete. The
- * FutureAction adds a callback so that when this value becomes available then
- * it will re-call the run method. If there are multiple dependencies this
- * continues until all are satisfied and then the side effects can be run. A
- * Future can only be assigned to once so this ensures that once a result
- * is available a call to get() is idempotent, and once the run method() completes
- * successfully (or fails) then it will not be run again.
+ * accessing it via {@link #result()} will throw an IncompleteResultException
+ * including a reference to the Future which is incomplete. The FutureAction
+ * adds a callback so that when this value becomes available then it will
+ * re-call the run method. If there are multiple dependencies this continues
+ * until all are satisfied and then the side effects can be run. A Future can
+ * only be assigned to once so this ensures that once a result is available a
+ * call to get() is idempotent, and once the run method() completes successfully
+ * (or fails) then it will not be run again.
  * 
  * <p>
  * It is a very important to note that creating a FutureAction does not cause
- * the action to be run. This will only happen if either the {@link #get()}, 
- * {@link #getAsync()}
- * or the {@link #eval()} is called. The effect of this is that
- * calling of chained asynchronous actions optimized so that they are only run
- * if they are needed and this approach automatically handles for example
- * boolean shortcutting while resolving dependencies. e.g.
+ * the action to be run. This will only happen if either the {@link #result()},
+ * {@link #addCallback(AsyncCallback)} or the {@link #eval()} is called. The
+ * effect of this is that calling of chained asynchronous actions optimized so
+ * that they are only run if they are needed and this approach automatically
+ * handles for example boolean shortcutting while resolving dependencies. e.g.
  * 
  * <code><pre>
- * FutureAction<Boolean> succeeds = new FutureAction<Boolean>() {
+ * Future<Boolean> succeeds = new FutureAction<Boolean>() {
  *    public void run() {
- *        set(true);
+ *        returnResult(true);
  *   }
  * }
  * 
- * FutureAction<Boolean> neverCalled = new FutureAction<Boolean>() {
+ * Future<Boolean> neverCalled = new FutureAction<Boolean>() {
  *    public void run() {
  *        throw new AssertionError("Should never be called");
  *    }
@@ -48,24 +47,26 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
  * 
  * FutureAction<Boolean> result = new FutureAction<Boolean>() {
  *    public void run() {
- *        set(succeeds.get() || fails.get()); // Note: fails will never be run!
+ *        returnResult(succeeds.result() || fails.result()); // Note: fails will never be run!
  *    }
  * }
  * </pre></code>
  * 
  * <p>
- * In addition, a given action may call a dependent Future as many times
- * as it likes but it will only be evaluated once and the same result returned
+ * In addition, a given action may call a dependent Future as many times as it
+ * likes but it will only be evaluated once and the same result returned
  * thereafter.
  * 
  * <p>
- * It should be noted that the FutureAction must either call {@link #set()} or pass itself
- * to a method which will call its onSuccess method on a successful result. If
- * this does not happen then the action will never complete successfully.
+ * It should be noted that the FutureAction must either call {@link #returnResult(Object)},
+ * {@link returnEmpty}, {@link #failWithException(Throwable)}, or {@link #cancel()}; or
+ * it must use {@link #callback()} to pass itself to a method that will complete the
+ * action via a callback. If this does not happen then the action will never complete.
  * 
  * <p>
- * To set an exception the action can either just throw the exception if it is
- * unchecked or else it can call the {@link #setException(Throwable)} method.
+ * To return an exception the action can either just throw the exception if it is
+ * unchecked or else it can call the {@link #failWithException(Throwable)}
+ * method.
  * 
  * @author Dean Povey
  * 
@@ -80,16 +81,16 @@ public abstract class FutureAction<T> extends FutureResult<T> implements Runnabl
     private boolean hasStarted = false;
     
     @Override
-    public void getAsync(AsyncCallback<T> callback) {        
-        super.getAsync(callback);
-        if (!isDone() && !isRunning()) {
+    public void addCallback(AsyncCallback<T> callback) {        
+        super.addCallback(callback);
+        if (!isComplete() && !isRunning()) {
             tryRunningTaskButIgnoreExceptions();
         }
     }
 
     @Override
-    public T get() {
-        if (isDone()) return super.get();
+    public T result() {
+        if (isComplete()) return super.result();
         if (isRunning()) throw new IncompleteResultException(this);
         if (hasUnresolvedDependencies()) {
             throw new IncompleteResultException(this, 
@@ -105,21 +106,21 @@ public abstract class FutureAction<T> extends FutureResult<T> implements Runnabl
         } catch(CancelledException e) {
             onCancel();
         } catch(Throwable t) {
-            setException(t);
+            failWithException(t);
         }
-        return super.get();
+        return super.result();
     }
     
     @Override
-    public void set(T value) {
+    public void returnResult(T value) {
         setRunning(false);
-        super.set(value);
+        super.returnResult(value);
     }
     
     @Override
-    public void setException(Throwable t) {
+    public void failWithException(Throwable t) {
         setRunning(false);
-        super.setException(t);
+        super.failWithException(t);
     }
     
     @Override
@@ -137,14 +138,14 @@ public abstract class FutureAction<T> extends FutureResult<T> implements Runnabl
     }
 
     private boolean isRunning() {
-        return hasStarted && !isDone();
+        return hasStarted && !isComplete();
     }
 
     @SuppressWarnings("unchecked")
     private void addDependency(final Future<?> dependency) {
         if (!dependencies.contains(dependency)) {
             dependencies.add(dependency);
-            dependency.getAsync(new AsyncCallback() {
+            dependency.addCallback(new AsyncCallback() {
 
                 public void onFailure(Throwable t) {
                     if (t instanceof CancelledException) FutureAction.this.cancel();
@@ -163,10 +164,10 @@ public abstract class FutureAction<T> extends FutureResult<T> implements Runnabl
     
     private void tryRunningTaskButIgnoreExceptions() {        
         try {
-            get();
+            result();
         } catch(Throwable t) {
             // Squash.  This is a little, dangerous however any exceptions should be
-            // caught in the get() method and then set in the result.
+            // caught in the result() method and then set in the result.
         }
     }
 

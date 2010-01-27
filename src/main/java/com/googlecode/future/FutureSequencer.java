@@ -29,9 +29,9 @@ public class FutureSequencer extends FutureAction<Boolean> {
 
     public void run() {
         for (Future<?> result : resultsToSequeunce) {
-            result.get();
+            result.result();
         }
-        set(true);
+        returnResult(true);
     }
 
 }

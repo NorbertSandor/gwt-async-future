@@ -34,9 +34,9 @@ public class FutureSynchronizer extends FutureAction<Boolean> {
         }
         
         for (Future<?> result : resultsToSynchronizeWith) {                
-            if (!result.isDone()) {
+            if (!result.isComplete()) {
                 try {
-                    result.get();
+                    result.result();
                 } catch(IncompleteResultException e) {
                     throw e;
                 } catch(CancelledException e) {
@@ -47,7 +47,7 @@ public class FutureSynchronizer extends FutureAction<Boolean> {
                 }
             }
         }
-        set(true);
+        returnResult(true);
     }
 
 }
