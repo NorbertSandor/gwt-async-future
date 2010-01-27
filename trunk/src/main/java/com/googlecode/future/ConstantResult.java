@@ -15,7 +15,7 @@ public class ConstantResult<T> extends FutureResult<T> implements AutoFuture<T> 
      * @param value value to set the result to.
      */
     public ConstantResult(T value) {
-        set(value);
+        returnResult(value);
     }       
     
     /**

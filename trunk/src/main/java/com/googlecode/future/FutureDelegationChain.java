@@ -45,14 +45,14 @@ public class FutureDelegationChain<T> extends FutureAction<T> {
     
     public void run() {
         for (int i=nextFuture; i < futures.size(); i++) {
-            T result = futures.get(i).get();
+            T result = futures.get(i).result();
             this.nextFuture++;
             if (isFinished(result)) {
-                set(result);
+                returnResult(result);
                 return;
             }
         }
-        setEmpty();
+        returnEmpty();
     }
 
     /**

@@ -12,43 +12,43 @@ public class FutureSequencerTest {
 
     @Test
     public void canSequenceSingleResult() {
-        FutureResult<Boolean> resultToSequence = constant(true);
-        FutureSequencer result = new FutureSequencer(resultToSequence);
-        assertTrue(result.get());
-        assertTrue(resultToSequence.get());
+        FutureResult<Boolean> single = constant(true);
+        FutureSequencer sequence = new FutureSequencer(single);
+        assertTrue(sequence.result());
+        assertTrue(single.result());
     }
     
     @Test
     public void canSequenceMultipleResults() {
-        List<FutureResult<Integer>> resultsToSequence = new ArrayList<FutureResult<Integer>>();
+        List<FutureResult<Integer>> multiple = new ArrayList<FutureResult<Integer>>();
         for (int i=0; i<10; i++) {
-            resultsToSequence.add(constant(i));
+            multiple.add(constant(i));
         }
-        FutureSequencer result = new FutureSequencer(resultsToSequence);
-        assertTrue(result.get());
+        FutureSequencer sequence = new FutureSequencer(multiple);
+        assertTrue(sequence.result());
         for (int i=0; i<10; i++) {
-            assertEquals(i, (int)resultsToSequence.get(i).get());
+            assertEquals(i, (int)multiple.get(i).result());
         }
     }
     
     @Test
     public void canSequenceMultipleResultsWhenResultsDelayed() {
         final RunLoopSimulator runloop = new RunLoopSimulator();
-        List<FutureResult<Integer>> resultsToSequence = new ArrayList<FutureResult<Integer>>();
+        List<FutureResult<Integer>> multipleDelayed = new ArrayList<FutureResult<Integer>>();
         for (int i=0; i<10; i++) {
             final Integer value = i;
-            resultsToSequence.add(new FutureAction<Integer>() {
+            multipleDelayed.add(new FutureAction<Integer>() {
                 public void run() {
-                    runloop.setValueLater(value, this);
+                    runloop.setValueLater(value, callback());
                 }
             });
         }
-        FutureSequencer result = new FutureSequencer(resultsToSequence);
-        result.eval();
+        FutureSequencer sequence = new FutureSequencer(multipleDelayed);
+        sequence.eval();
         runloop.run();
-        assertTrue(result.get());
+        assertTrue(sequence.result());
         for (int i=0; i<10; i++) {
-            assertEquals(i, (int)resultsToSequence.get(i).get());
+            assertEquals(i, (int)multipleDelayed.get(i).result());
         }
     }
     
@@ -60,7 +60,7 @@ public class FutureSequencerTest {
             final Integer value = i;
             resultsToSequence.add(new FutureAction<Integer>() {
                 public void run() {
-                    runloop.setValueLater(value, this);
+                    runloop.setValueLater(value, callback());
                 }
             });
         }
@@ -69,13 +69,13 @@ public class FutureSequencerTest {
                 runloop.cancelLater(this);
             }
         });
-        FutureSequencer result = new FutureSequencer(resultsToSequence);
-        result.eval();
+        FutureSequencer sequence = new FutureSequencer(resultsToSequence);
+        sequence.eval();
         runloop.run();
-        assertTrue(result.isCancelled());
+        assertTrue(sequence.isCancelled());
         // Everything but the last result is completed.
         for (int i=0; i<2; i++) {
-            assertEquals(i, (int)resultsToSequence.get(i).get());
+            assertEquals(i, (int)resultsToSequence.get(i).result());
         }
     }
     
@@ -94,16 +94,16 @@ public class FutureSequencerTest {
             final Integer value = i;
             resultsToSequence.add(new FutureAction<Integer>() {
                 public void run() {
-                    set(value);
+                    returnResult(value);
                 }
             });
         }
-        FutureSequencer result = new FutureSequencer(resultsToSequence);
-        result.eval();
-        assertTrue(result.isFailure());
+        FutureSequencer sequence = new FutureSequencer(resultsToSequence);
+        sequence.eval();
+        assertTrue(sequence.isFailure());
         // Make sure no result after the first was evaulated
         for (int i=1; i<NUMBER_OF_RESULTS_TO_SEQUENCE_AFTER_FAILURE + 1; i++) {
-            assertFalse(resultsToSequence.get(i).isDone());
+            assertFalse(resultsToSequence.get(i).isComplete());
         }
     }
 

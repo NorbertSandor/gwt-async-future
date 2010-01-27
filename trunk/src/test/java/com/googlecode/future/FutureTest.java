@@ -17,23 +17,23 @@ public class FutureTest {
     public void canEvaluateSimpleFutureTask() {
         FutureAction<Boolean> simple = new FutureAction<Boolean>() {
             public void run() {
-               set(true);             
+               returnResult(true);             
             }
         };
-        assertTrue(simple.get());        
-        assertTrue(simple.isDone());
+        assertTrue(simple.result());        
+        assertTrue(simple.isComplete());
 
     }
     
     @Test(expected=AssertionError.class)
     public void canEvaluateSimpleFailureForUncheckedException() throws Exception {
         try {
-            FutureAction<Boolean> simple = new FutureAction<Boolean>() {
+            FutureAction<Boolean> simpleFailure = new FutureAction<Boolean>() {
                 public void run() {
-                    setException(new AssertionError());            
+                    failWithException(new AssertionError());            
                 }
             };
-            assertTrue(simple.get());
+            assertTrue(simpleFailure.result());
         } catch(ExecutionException e) {
             e.rethrowUncheckedCause();
         }
@@ -46,12 +46,12 @@ public class FutureTest {
     @Test(expected=CheckedException.class)
     public void canEvaluateSimpleFailureForCheckedException() throws Exception {
         try {
-            FutureAction<Boolean> simple = new FutureAction<Boolean>() {
+            FutureAction<Boolean> simpleFailure = new FutureAction<Boolean>() {
                 public void run() {
-                    setException(new CheckedException());            
+                    failWithException(new CheckedException());            
                 }
             };
-            assertTrue(simple.get());
+            assertTrue(simpleFailure.result());
         } catch(ExecutionException e) {
             throw e.getCheckedCauseOrRethrow(CheckedException.class);
         }
@@ -61,17 +61,17 @@ public class FutureTest {
     public void whenFutureHasDependencyThatIsRunFirst() {
         final FutureAction<Boolean> first = new FutureAction<Boolean>() {
             public void run() {
-                set(true);
+                returnResult(true);
             }
         };
         
         FutureAction<Boolean> second = new FutureAction<Boolean>() {
             public void run() {
-                set(first.get());
+                returnResult(first.result());
             }
         };
        
-        assertTrue(second.get());
+        assertTrue(second.result());
     }
     
     @Test
@@ -79,37 +79,37 @@ public class FutureTest {
         final RunLoopSimulator runloop = new RunLoopSimulator();
         FutureAction<Boolean> simple = new FutureAction<Boolean>() {
             public void run() {
-               runloop.setValueLater(true, this); 
+               runloop.setValueLater(true, callback()); 
             }
         };
         FutureResult<Boolean> result = new FutureResult<Boolean>();
-        simple.getAsync(result);
-        assertFalse(simple.isDone());                
+        simple.addCallback(result);
+        assertFalse(simple.isComplete());                
         runloop.run();
-        assertTrue(result.get());
+        assertTrue(result.result());
     }    
     
     @Test
-    public void whenResultsAreDelayedcanEvaluateSimpleFutureTaskWithDependency() {        
+    public void whenResultsAreDelayedCanEvaluateSimpleFutureTaskWithDependency() {        
         final RunLoopSimulator runloop = new RunLoopSimulator();
         final FutureAction<Boolean> first = new FutureAction<Boolean>() {
             public void run() {
-               runloop.setValueLater(true, this); 
+               runloop.setValueLater(true, callback()); 
             }
         };
                 
         FutureAction<Boolean> second = new FutureAction<Boolean>() {
             public void run() {
-                set(first.get());
+                returnResult(first.result());
             }
         };
        
-        FutureResult<Boolean> result = new FutureResult<Boolean>();
-        second.getAsync(result);
-        assertFalse(first.isDone());
-        assertFalse(second.isDone());
+        FutureResult<Boolean> last = new FutureResult<Boolean>();
+        second.addCallback(last);
+        assertFalse(first.isComplete());
+        assertFalse(second.isComplete());
         runloop.run();
-        assertTrue(result.get());
+        assertTrue(last.result());
     }
     
     @Test
@@ -117,29 +117,29 @@ public class FutureTest {
         final RunLoopSimulator runloop = new RunLoopSimulator();
         final FutureAction<Boolean> first = new FutureAction<Boolean>() {
             public void run() {
-               runloop.setValueLater(true, this); 
+               runloop.setValueLater(true, callback()); 
             }
         };
                 
         final FutureAction<Boolean> second = new FutureAction<Boolean>() {
             public void run() {
-                runloop.setValueLater(first.get(), this);
+                runloop.setValueLater(first.result(), callback());
             }
         };
         
         final FutureAction<Boolean> third = new FutureAction<Boolean>() {
             public void run() {
-                set(second.get() && first.get());
+                returnResult(second.result() && first.result());
             }
         };        
        
-        FutureResult<Boolean> result = new FutureResult<Boolean>();
-        third.getAsync(result);
-        assertFalse(first.isDone());
-        assertFalse(second.isDone());
-        assertFalse(third.isDone());
+        FutureResult<Boolean> last = new FutureResult<Boolean>();
+        third.addCallback(last);
+        assertFalse(first.isComplete());
+        assertFalse(second.isComplete());
+        assertFalse(third.isComplete());
         runloop.run();
-        assertTrue(result.get());
+        assertTrue(last.result());
     }
     
     @Test
@@ -147,38 +147,38 @@ public class FutureTest {
         final RunLoopSimulator runloop = new RunLoopSimulator();
         final FutureAction<Boolean> first = new FutureAction<Boolean>() {
             public void run() {
-               runloop.setValueLater(true, this); 
+               runloop.setValueLater(true, callback()); 
             }
         };
                 
         final FutureAction<Boolean> second = new FutureAction<Boolean>() {
             public void run() {
-                runloop.setValueLater(first.get(), this);
+                runloop.setValueLater(first.result(), callback());
             }
         };
         
         final FutureAction<Boolean> third = new FutureAction<Boolean>() {
             public void run() {
-                set(first.get());
+                returnResult(first.result());
             }
         };        
         
         final FutureAction<Boolean> fourth = new FutureAction<Boolean>() {
             public void run() {
-                set(second.get());
+                returnResult(second.result());
             }
         };
        
         FutureResult<Boolean> result1 = new FutureResult<Boolean>();
-        third.getAsync(result1);
+        third.addCallback(result1);
         FutureResult<Boolean> result2 = new FutureResult<Boolean>();
-        fourth.getAsync(result2);
-        assertFalse(first.isDone());
-        assertFalse(second.isDone());
-        assertFalse(third.isDone());
+        fourth.addCallback(result2);
+        assertFalse(first.isComplete());
+        assertFalse(second.isComplete());
+        assertFalse(third.isComplete());
         runloop.run();
-        assertTrue(result1.get());
-        assertTrue(result2.get());
+        assertTrue(result1.result());
+        assertTrue(result2.result());
     }
     
     @Test
@@ -186,52 +186,52 @@ public class FutureTest {
         final RunLoopSimulator runloop = new RunLoopSimulator();
         final FutureAction<Boolean> first = new FutureAction<Boolean>() {
             public void run() {
-               runloop.setValueLater(true, this); 
+               runloop.setValueLater(true, callback()); 
             }
         };
                 
         final FutureAction<Boolean> second = new FutureAction<Boolean>() {
             public void run() {
-                runloop.setValueLater(first.get(), this);
+                runloop.setValueLater(first.result(), callback());
             }
         };
         
         final FutureAction<Boolean> third = new FutureAction<Boolean>() {
             public void run() {
-                set(first.get());
+                returnResult(first.result());
             }
         };        
         
         final FutureAction<Boolean> fourth = new FutureAction<Boolean>() {
             public void run() {
-                set(second.get());
+                returnResult(second.result());
             }
         };
        
         FutureResult<Boolean> result1 = new FutureResult<Boolean>();
-        third.getAsync(result1);
+        third.addCallback(result1);
         FutureResult<Boolean> result2 = new FutureResult<Boolean>();
-        fourth.getAsync(result2);
-        assertFalse(first.isDone());
-        assertFalse(second.isDone());
-        assertFalse(third.isDone());
+        fourth.addCallback(result2);
+        assertFalse(first.isComplete());
+        assertFalse(second.isComplete());
+        assertFalse(third.isComplete());
         runloop.run();
-        assertTrue(result1.get());
-        assertTrue(result2.get());
+        assertTrue(result1.result());
+        assertTrue(result2.result());
     }
     
     @Test(expected=IllegalStateException.class)
     public void cannotSetBothValueAndException() {
         Future<Boolean> future = new FutureResult<Boolean>();
-        future.set(true);
-        future.setException(new Exception());
+        future.returnResult(true);
+        future.failWithException(new Exception());
     }
     
     @Test(expected=IllegalStateException.class)
     public void cannotSetValueTwice() {
         Future<Boolean> future = new FutureResult<Boolean>();
-        future.set(true);
-        future.set(false);
+        future.returnResult(true);
+        future.returnResult(false);
     }
     
     @Test
@@ -242,9 +242,9 @@ public class FutureTest {
             }
         };
         FutureResult<Boolean> result = new FutureResult<Boolean>();
-        future.getAsync(result);
+        future.addCallback(result);
         assertTrue(future.isFailure());
-        assertTrue(future.getException() instanceof NullPointerException);
+        assertTrue(future.exception() instanceof NullPointerException);
     }
     
     @Test
@@ -256,7 +256,7 @@ public class FutureTest {
         };
         
         FutureResult<Boolean> result = new FutureResult<Boolean>();
-        actionThatNeverCompletes.getAsync(result);
+        actionThatNeverCompletes.addCallback(result);
         actionThatNeverCompletes.cancel();
         assertTrue(result.isCancelled());
         
@@ -271,16 +271,16 @@ public class FutureTest {
 
             @Override
             public void onCancel() {
-                set(true);
+                returnResult(true);
             }
             
         };
         
         FutureResult<Boolean> result = new FutureResult<Boolean>();
-        trueIfItSucceedsFalseIfCancelled.getAsync(result);
+        trueIfItSucceedsFalseIfCancelled.addCallback(result);
         trueIfItSucceedsFalseIfCancelled.cancel();
         assertFalse(result.isCancelled());
-        assertTrue(result.get());
+        assertTrue(result.result());
         
     }
     
@@ -295,28 +295,28 @@ public class FutureTest {
                 
         final FutureAction<Boolean> second = new FutureAction<Boolean>() {
             public void run() {
-                runloop.setValueLater(first.get(), this);
+                runloop.setValueLater(first.result(), callback());
             }
         };
         
         final FutureAction<Boolean> third = new FutureAction<Boolean>() {
             public void run() {
-                set(first.get());
+                returnResult(first.result());
                 throw new AssertionError("Should not be reached");
             }
         };        
         
         final FutureAction<Boolean> fourth = new FutureAction<Boolean>() {
             public void run() {
-                set(second.get());
+                returnResult(second.result());
                 throw new AssertionError("Should not be reached");
             }
         };
        
         FutureResult<Boolean> result1 = new FutureResult<Boolean>();
-        third.getAsync(result1);
+        third.addCallback(result1);
         FutureResult<Boolean> result2 = new FutureResult<Boolean>();
-        fourth.getAsync(result2);
+        fourth.addCallback(result2);
         assertTrue(first.isCancelled());
         runloop.run();
         assertTrue(result1.isCancelled());
@@ -329,23 +329,23 @@ public class FutureTest {
         final ConstantResult<Boolean> existing = ConstantResult.constant(true);
         FutureAction<Boolean> result = new FutureAction<Boolean>() {            
             public void run() {
-                set(existing.get());
+                returnResult(existing.result());
             }
         };
-        assertTrue(result.get());
+        assertTrue(result.result());
     }
     
     @Test
     public void whenEvalCalledResultEvaluatedButNotReturned() {
         FutureAction<Boolean> action = new FutureAction<Boolean>() {
             public void run() {
-                set(true);
+                returnResult(true);
             }
         };
         
         // Run action but do not set callback on result
         action.eval();        
-        assertTrue(action.get());
+        assertTrue(action.result());
         
     }
         

@@ -21,7 +21,7 @@ import static com.googlecode.future.ExecutionException.returnIfCheckedThrowIfUnc
  *  if (result.isDone()) {
  *      boolean success = result.getValue();
  *  } 
- *  <pre></code>
+ *  </pre></code>
  *  
  *  <p>In general a FutureResult will be used to collect a result from 
  *  one or more {@link FutureAction} instances.
@@ -42,14 +42,9 @@ public class FutureResult<T> implements CancellableAsyncCallback<T>, Future<T> {
     
     private State state = State.INCOMPLETE;
 
-    /**
-     * Get the result if available.
-     * 
-     * @return result
-     * @throws IncompleteResultException If result is not yet available
-     * @throws ExecutionException If operation failed
-     */
-    public T get() throws IncompleteResultException, ExecutionException {
+    /** {@inheritDoc} */
+    public T result() throws IncompleteResultException, ExecutionException,
+        CancelledException {
         switch(state) {
         case INCOMPLETE: throw new IncompleteResultException(this);
         case FAILED: throw new ExecutionException(returnIfCheckedThrowIfUnchecked(exception));
@@ -60,17 +55,10 @@ public class FutureResult<T> implements CancellableAsyncCallback<T>, Future<T> {
         throw new IllegalStateException();
     }
 
-    /**
-     * Invoke the callback when a result becomes available.  This method may be called
-     * multiple times with different callbacks.  If the same callback is used multiple times
-     * it will only be called once when a result becomes available, otherwise each callback
-     * is invoked in the order in which this method was called.
-     * 
-     * @param callback Callback to invoke
-     */
-    public void getAsync(AsyncCallback<T> callback) {
+    /** {@inheritDoc} */
+    public void addCallback(AsyncCallback<T> callback) {
         if (callback == null) return;
-        if (isDone()) {
+        if (isComplete()) {
             if (isSuccessful()) callback.onSuccess(value);
             else callback.onFailure(this.exception);
             return;
@@ -78,52 +66,30 @@ public class FutureResult<T> implements CancellableAsyncCallback<T>, Future<T> {
        listeners.add(callback);
     }
 
-    /**
-     * Whether a result is available.
-     * 
-     * @return true if result is available, was cancelled, or an exception
-     *         occurred, false otherwise.
-     */
-    public boolean isDone() {
+    /** {@inheritDoc} */
+    public boolean isComplete() {
         return state != State.INCOMPLETE;
     }
     
-    /**
-     * Whether the operation was successful.
-     * 
-     *  @return true if operation succeeded, false if operation failed or is 
-     *      incomplete. 
-     */
+    /** {@inheritDoc} */
     public boolean isSuccessful() {
         return state == State.SUCCEEDED;
     }
     
-    /**
-     * Whether the operation was successful.
-     * 
-     * @return true if operation failed with an exception, false if operation succeeded or is 
-     *  incomplete. 
-     */
+    /** {@inheritDoc} */
     public boolean isFailure() {
         return state == State.FAILED;
     }
     
-    /**
-     * Get the exception which was previously set.
-     * 
-     *  @return the exception or null if no exception was set.
-     */
-    public Throwable getException() {
+
+    /** {@inheritDoc} */
+    public Throwable exception() {
         return this.exception;
     }
 
-    /**
-     * Set exception.
-     * 
-     * @param t Exception to set.
-     */
-    public void setException(Throwable t) {
-        if (isDone()) {            
+    /** {@inheritDoc} */
+    public void failWithException(Throwable t) {
+        if (isComplete()) {            
             throw new IllegalStateException("Cannot set Future state twice");
         }
         state = State.FAILED;
@@ -132,13 +98,9 @@ public class FutureResult<T> implements CancellableAsyncCallback<T>, Future<T> {
         notifyListenersOnFailure();
     }
 
-    /**
-     * Used to set a FutureResult value.
-     * 
-     * @param value Value to set.
-     */
-    public void set(T value) {
-        if (isDone()) {            
+    /** {@inheritDoc} */
+    public void returnResult(T value) {
+        if (isComplete()) {            
             throw new IllegalStateException("Cannot set Future state twice");
         }
         state = State.SUCCEEDED;
@@ -147,8 +109,9 @@ public class FutureResult<T> implements CancellableAsyncCallback<T>, Future<T> {
         notifyListenersOnSuccess(value);        
     }
 
-    public void setEmpty() {
-        set(null);
+    /** {@inheritDoc} */
+    public void returnEmpty() {
+        returnResult(null);
     }
 
     
@@ -164,16 +127,28 @@ public class FutureResult<T> implements CancellableAsyncCallback<T>, Future<T> {
         return callbacks;
     }
     
-
+    /**
+     * Method called to indicate a failure.  By default calls {@link #onCancel()} 
+     * if exception is {@link CancelledException}, or {@link #failWithException(Throwable)}
+     * otherwise.  May be overridden by subclasses.
+     */
     public void onFailure(Throwable t) {
         if (t instanceof CancelledException) onCancel();
-        else setException(t);
-    }
-
-    public void onSuccess(T value) {
-        set(value);
+        else failWithException(t);
     }
     
+    /**
+     * Method called to indicate success.  By default sets the future to return the
+     * result.  May be overridden by subclasses.
+     */
+    public void onSuccess(T value) {
+        returnResult(value);
+    }
+    
+    /**
+     * Method called to indicate future was cancelled.  By default will call 
+     * {@link #setCancelled()} but this behavior may be overriden by subclasses. 
+     */
     public void onCancel() {
         setCancelled();
     }
@@ -185,7 +160,7 @@ public class FutureResult<T> implements CancellableAsyncCallback<T>, Future<T> {
      * a CancelledException.
      */
     protected void setCancelled() {
-        if (isDone()) return;
+        if (isComplete()) return;
         state = State.CANCELLED;
         this.exception = new CancelledException();
         onCompleted();        
@@ -199,6 +174,8 @@ public class FutureResult<T> implements CancellableAsyncCallback<T>, Future<T> {
     protected void onCompleted() {        
     }
 
+    
+    /** {@inheritDoc} */
     public void cancel() {
         onCancel();     
     }
@@ -217,17 +194,19 @@ public class FutureResult<T> implements CancellableAsyncCallback<T>, Future<T> {
         }
     }
 
+    /** {@inheritDoc} */
     public boolean isCancelled() {
         return state == State.CANCELLED;
     }
     
-    /**
-     * Evaluate the result but do not register a callback to be notified when complete.
-     * This should be used to evaluate a chain of actions where the eventual final
-     * result is not needed.
-     */
+    /** {@inheritDoc} */
     public void eval() {
-        getAsync(null);
+        addCallback(null);
+    }
+
+    /** {@inheritDoc} */
+    public CancellableAsyncCallback<T> callback() {
+        return this;
     }
 
 }

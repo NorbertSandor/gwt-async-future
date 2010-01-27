@@ -14,8 +14,8 @@ public class FutureSynchronizerTest {
     public void canSynchronizedWithSimpleResult() {
         FutureResult<Boolean> resultToSynchronizeWith = constant(true);
         FutureSynchronizer result = new FutureSynchronizer(resultToSynchronizeWith);
-        assertTrue(result.get());
-        assertTrue(resultToSynchronizeWith.get());
+        assertTrue(result.result());
+        assertTrue(resultToSynchronizeWith.result());
     }
     
     @Test
@@ -25,9 +25,9 @@ public class FutureSynchronizerTest {
             resultsToSynchronizeWith.add(constant(i));
         }
         FutureSynchronizer result = new FutureSynchronizer(resultsToSynchronizeWith);
-        assertTrue(result.get());
+        assertTrue(result.result());
         for (int i=0; i<10; i++) {
-            assertEquals(i, (int)resultsToSynchronizeWith.get(i).get());
+            assertEquals(i, (int)resultsToSynchronizeWith.get(i).result());
         }
     }
     
@@ -46,9 +46,9 @@ public class FutureSynchronizerTest {
         FutureSynchronizer result = new FutureSynchronizer(resultsToSynchronizeWith);
         result.eval();
         runloop.run();
-        assertTrue(result.get());
+        assertTrue(result.result());
         for (int i=0; i<10; i++) {
-            assertEquals(i, (int)resultsToSynchronizeWith.get(i).get());
+            assertEquals(i, (int)resultsToSynchronizeWith.get(i).result());
         }
     }
     @Test
@@ -74,7 +74,7 @@ public class FutureSynchronizerTest {
         assertTrue(result.isCancelled());
         // Everything but the last result is completed.
         for (int i=0; i<2; i++) {
-            assertEquals(i, (int)resultsToSynchronizeWith.get(i).get());
+            assertEquals(i, (int)resultsToSynchronizeWith.get(i).result());
         }
     }
     
@@ -93,15 +93,15 @@ public class FutureSynchronizerTest {
             final Integer value = i;
             resultsToSynchronizeWith.add(new FutureAction<Integer>() {
                 public void run() {
-                    set(value);
+                    returnResult(value);
                 }
             });
         }
         FutureSynchronizer result = new FutureSynchronizer(resultsToSynchronizeWith);
-        assertTrue(result.get());
+        assertTrue(result.result());
         // Make sure no result after the first was evaulated
         for (int i=1; i<NUMBER_OF_RESULTS_TO_SYNCHRONIZE_AFTER_FAILURE + 1; i++) {
-            assertTrue(resultsToSynchronizeWith.get(i).isDone());
+            assertTrue(resultsToSynchronizeWith.get(i).isComplete());
         }
     }
 

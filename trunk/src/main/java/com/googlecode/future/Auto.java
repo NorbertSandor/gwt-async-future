@@ -30,24 +30,24 @@ public class Auto<T> implements AutoFuture<T> {
         future.eval();
     }
 
-    public T get() throws IncompleteResultException, ExecutionException {
-        return future.get();
+    public T result() throws IncompleteResultException, ExecutionException {
+        return future.result();
     }
 
-    public void getAsync(AsyncCallback<T> callback) {
-        future.getAsync(callback);
+    public void addCallback(AsyncCallback<T> callback) {
+        future.addCallback(callback);
     }
 
-    public Throwable getException() {
-        return future.getException();
+    public Throwable exception() {
+        return future.exception();
     }
 
     public boolean isCancelled() {
         return future.isCancelled();
     }
 
-    public boolean isDone() {
-        return future.isDone();
+    public boolean isComplete() {
+        return future.isComplete();
     }
 
     public boolean isFailure() {
@@ -58,16 +58,20 @@ public class Auto<T> implements AutoFuture<T> {
         return future.isSuccessful();
     }
 
-    public void set(T value) {
-        future.set(value);
+    public void returnResult(T value) {
+        future.returnResult(value);
     }
 
-    public void setEmpty() {
-        future.setEmpty();
+    public void returnEmpty() {
+        future.returnEmpty();
     }
     
-    public void setException(Throwable t) {
-        future.setException(t);
+    public void failWithException(Throwable t) {
+        future.failWithException(t);
+    }
+
+    public CancellableAsyncCallback<T> callback() {
+        return future.callback();
     }
 
     
