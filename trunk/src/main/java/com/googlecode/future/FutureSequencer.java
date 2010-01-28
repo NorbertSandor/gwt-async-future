@@ -16,19 +16,19 @@ import static java.util.Arrays.asList;
  */
 public class FutureSequencer extends FutureAction<Boolean> {
    
-    private List<FutureResult<?>> resultsToSequeunce;
+    private List<Future<?>> resultsToSequence;
     
-    public FutureSequencer(FutureResult<?>...resultsToSequence) {
-        this.resultsToSequeunce = asList(resultsToSequence);
+    public FutureSequencer(Future<?>...resultsToSequence) {
+        this.resultsToSequence = asList(resultsToSequence);
     }
 
     public FutureSequencer(
-            Collection<FutureResult<Integer>> resultsToSynchronizeWith) {
-        this.resultsToSequeunce = new ArrayList<FutureResult<?>>(resultsToSynchronizeWith);
+            Collection<? extends Future<?>> resultsToSynchronizeWith) {
+        this.resultsToSequence = new ArrayList<Future<?>>(resultsToSynchronizeWith);
     }
 
     public void run() {
-        for (Future<?> result : resultsToSequeunce) {
+        for (Future<?> result : resultsToSequence) {
             result.result();
         }
         returnResult(true);

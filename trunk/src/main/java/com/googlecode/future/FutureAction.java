@@ -59,7 +59,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
  * 
  * <p>
  * It should be noted that the FutureAction must either call {@link #returnResult(Object)},
- * {@link returnEmpty}, {@link #failWithException(Throwable)}, or {@link #cancel()}; or
+ * {@link #returnEmpty()}, {@link #failWithException(Throwable)}, or {@link #cancel()}; or
  * it must use {@link #callback()} to pass itself to a method that will complete the
  * action via a callback. If this does not happen then the action will never complete.
  * 
@@ -70,7 +70,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
  * 
  * @author Dean Povey
  * 
- * @see {@link FutureResult}
+ * @see FutureResult
  * 
  * @param <T> Type of result
  */

@@ -8,15 +8,15 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
  * 
  * <p>A {@link Future} provides an alternative way to process asynchronous operations.  Rather
  * than providing a callback, a Future is either passed in or returned from an asynchronous
- * method.  When a result is available it may be obtained by using the {@link result} method.  If 
+ * method.  When a result is available it may be obtained by using the {@link #result()} method.  If 
  * result() is called and no results are available then an {@link IncompleteResultException} should be
  * thrown.  If the operation threw an exception then an {@link ExecutionException} should be thrown
  * with the underlying cause.
  * 
  * @author Dean Povey
  * 
- * @see {@link FutureResult}
- * @see {@link FutureAction}
+ * @see FutureResult
+ * @see FutureAction
  *
  * @param <T> Type of the result.
  */
@@ -50,9 +50,9 @@ public interface Future<T> {
     /**
      * Evaluate the future but do not register a callback to be notified when complete.
      * This can be used to preemptively evaluate a future without waiting for some
-     * dependendent result to require it.
+     * dependent result to require it.
      * 
-     * @see {@link AutoFuture}
+     * @see AutoFuture
      */
     public abstract void eval();
     
@@ -124,7 +124,8 @@ public interface Future<T> {
      * Return a callback that can be passed to an asynchronous method.  The
      * {@link AsyncCallback#onFailure(Throwable)}, {@link AsyncCallback#onSuccess(Object)}
      * and {@link CancellableAsyncCallback#onCancel()} methods of this callback will
-     * invoke {@link failWithException}, {@link returnResult} and {@link cancel} 
+     * invoke {@link #failWithException(Throwable)}, {@link #returnResult(Object)} and 
+     * {@link #cancel()}
      * respectively.
      * 
      * @return a callback to be passed to another method.

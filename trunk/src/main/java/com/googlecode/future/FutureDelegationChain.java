@@ -5,7 +5,7 @@ import java.util.List;
 
 /**
  * A future that evaluates a series of dependent futures in sequence until one
- * of them satisfies the criteria of the {@link isFinished} method. If this
+ * of them satisfies the criteria of the {@link #isResult(Object)} method. If this
  * method is not overridden then the default implementation checks for a non-null
  * value.
  * 
@@ -47,7 +47,7 @@ public class FutureDelegationChain<T> extends FutureAction<T> {
         for (int i=nextFuture; i < futures.size(); i++) {
             T result = futures.get(i).result();
             this.nextFuture++;
-            if (isFinished(result)) {
+            if (isResult(result)) {
                 returnResult(result);
                 return;
             }
@@ -56,12 +56,14 @@ public class FutureDelegationChain<T> extends FutureAction<T> {
     }
 
     /**
-     * Called to see if the given future satisfies this request.
+     * Called to see if the result should be returned or the next future in the chain should
+     * be run.  By default this method checks to see if the result is non-null, but this may be
+     * overridden by subclasses.
      * 
      * @param result
-     * @return
+     * @return true if result should be returned, false otherwise
      */
-    public boolean isFinished(T result) {
+    public boolean isResult(T result) {
         return result != null;
     }
 }
