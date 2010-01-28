@@ -37,7 +37,7 @@ public class FutureDelegationChainTest {
         FutureDelegationChain<Integer> getFirstValid = 
             new FutureDelegationChain<Integer>(constant(1), constant(2), constant(3)) {
             @Override
-            public boolean isFinished(Integer result) {
+            public boolean isResult(Integer result) {
                 return result > 2; 
             }
         };
