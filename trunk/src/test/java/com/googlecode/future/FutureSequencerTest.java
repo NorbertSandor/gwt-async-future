@@ -44,7 +44,7 @@ public class FutureSequencerTest {
             });
         }
         FutureSequencer sequence = new FutureSequencer(multipleDelayed);
-        sequence.eval();
+        sequence.start();
         runloop.run();
         assertTrue(sequence.result());
         for (int i=0; i<10; i++) {
@@ -70,7 +70,7 @@ public class FutureSequencerTest {
             }
         });
         FutureSequencer sequence = new FutureSequencer(resultsToSequence);
-        sequence.eval();
+        sequence.start();
         runloop.run();
         assertTrue(sequence.isCancelled());
         // Everything but the last result is completed.
@@ -99,7 +99,7 @@ public class FutureSequencerTest {
             });
         }
         FutureSequencer sequence = new FutureSequencer(resultsToSequence);
-        sequence.eval();
+        sequence.start();
         assertTrue(sequence.isFailure());
         // Make sure no result after the first was evaulated
         for (int i=1; i<NUMBER_OF_RESULTS_TO_SEQUENCE_AFTER_FAILURE + 1; i++) {

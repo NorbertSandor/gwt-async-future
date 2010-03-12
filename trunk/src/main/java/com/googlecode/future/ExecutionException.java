@@ -48,6 +48,12 @@ public class ExecutionException extends RuntimeException {
         if (t instanceof Error) throw (Error) t;
         return t;
     }
+    
+    public static Throwable wrapIfCheckedReturnIfUnchecked(Throwable t) {
+        if (t instanceof RuntimeException) return t;
+        if (t instanceof Error) return t;
+        return new ExecutionException(t);
+    }
 
     public ExecutionException(String message, Throwable cause) {
         super(message, cause);
@@ -68,6 +74,7 @@ public class ExecutionException extends RuntimeException {
         rethrowUncheckedCause();
         throw new AssertionError("Should have thrown unchecked cause");
     }
+    
     
     public void rethrowUncheckedCause() {
         Throwable cause = getCause();
