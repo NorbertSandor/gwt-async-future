@@ -48,13 +48,22 @@ public interface Future<T> {
     public abstract void cancel();
     
     /**
-     * Evaluate the future but do not register a callback to be notified when complete.
+     * Evalute the future.
+     * 
+     * @deprecated use {@link #start()}
+     */
+    @Deprecated
+    public abstract void eval();
+    
+    
+    /**
+     * Start evaluating the future but do not register a callback to be notified when complete.
      * This can be used to preemptively evaluate a future without waiting for some
      * dependent result to require it.
      * 
      * @see AutoFuture
      */
-    public abstract void eval();
+    public abstract void start();
     
     /**
      * Add a callback that is invoked when a result becomes available.  This method may be called
@@ -100,18 +109,17 @@ public interface Future<T> {
      */
     public abstract boolean isCancelled();
     
-     /**
+    /**
      * Sets the result for this future to the specified value.
      * 
      * @param value value to return.
      */
-    public abstract void returnResult(T value);
-    
-
+    public abstract void setResult(T value);
+         
     /**
      * Sets the result for this future to an empty (e.g. null) result.
      */
-    public abstract void returnEmpty();
+    public abstract void setEmpty();
 
     /**
      * Indicates that the future failed with the given exception.
@@ -131,5 +139,19 @@ public interface Future<T> {
      * @return a callback to be passed to another method.
      */
     public abstract CancellableAsyncCallback<T> callback();
+    
+    /**
+     * Set the name of this future.  Can be useful for debugging.
+     * 
+     * @return
+     */
+    public void setName(String name);
+    
+    /**
+     * Get the name of this future.  Can be useful for debugging.
+     * 
+     * @return the name of the future
+     */
+    public String getName();
     
 }

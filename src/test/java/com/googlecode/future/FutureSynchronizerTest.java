@@ -44,7 +44,7 @@ public class FutureSynchronizerTest {
             });
         }
         FutureSynchronizer result = new FutureSynchronizer(resultsToSynchronizeWith);
-        result.eval();
+        result.start();
         runloop.run();
         assertTrue(result.result());
         for (int i=0; i<10; i++) {
@@ -69,7 +69,7 @@ public class FutureSynchronizerTest {
             }
         });
         FutureSynchronizer result = new FutureSynchronizer(resultsToSynchronizeWith);
-        result.eval();
+        result.start();
         runloop.run();
         assertTrue(result.isCancelled());
         // Everything but the last result is completed.

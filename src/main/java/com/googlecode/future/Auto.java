@@ -19,15 +19,19 @@ public class Auto<T> implements AutoFuture<T> {
     
     private Auto(Future<T> future) {
         this.future = future;
-        future.eval();
+        future.start();
     }
 
     public void cancel() {
         future.cancel();
     }
 
+    public void start() {
+        future.start();
+    }
+    
     public void eval() {
-        future.eval();
+        start();
     }
 
     public T result() throws IncompleteResultException, ExecutionException {
@@ -58,12 +62,12 @@ public class Auto<T> implements AutoFuture<T> {
         return future.isSuccessful();
     }
 
-    public void returnResult(T value) {
-        future.returnResult(value);
+    public void setResult(T value) {
+        future.setResult(value);
     }
 
-    public void returnEmpty() {
-        future.returnEmpty();
+    public void setEmpty() {
+        future.setEmpty();
     }
     
     public void failWithException(Throwable t) {
@@ -74,5 +78,16 @@ public class Auto<T> implements AutoFuture<T> {
         return future.callback();
     }
 
+    public void setName(String name) {
+        this.future.setName(name);
+    }
     
+    @Override
+    public String toString() {
+        return this.future.toString(); 
+    }
+
+    public String getName() {
+        return "<Auto>" + this.future.getName();
+    }
 }

@@ -30,7 +30,7 @@ public class FutureSynchronizer extends FutureAction<Boolean> {
 
     public void run() {
         for (Future<?> result : resultsToSynchronizeWith) {
-            result.eval();
+            result.start();
         }
         
         for (Future<?> result : resultsToSynchronizeWith) {                

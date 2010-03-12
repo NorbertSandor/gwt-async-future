@@ -223,15 +223,15 @@ public class FutureTest {
     @Test(expected=IllegalStateException.class)
     public void cannotSetBothValueAndException() {
         Future<Boolean> future = new FutureResult<Boolean>();
-        future.returnResult(true);
+        future.setResult(true);
         future.failWithException(new Exception());
     }
     
     @Test(expected=IllegalStateException.class)
     public void cannotSetValueTwice() {
         Future<Boolean> future = new FutureResult<Boolean>();
-        future.returnResult(true);
-        future.returnResult(false);
+        future.setResult(true);
+        future.setResult(false);
     }
     
     @Test
@@ -344,8 +344,74 @@ public class FutureTest {
         };
         
         // Run action but do not set callback on result
-        action.eval();        
+        action.start();        
         assertTrue(action.result());
+        
+    }
+    
+    @Test(expected=UnsupportedOperationException.class)
+    public void uncheckedExceptionInDependencyIsPropogated() {
+        final FutureAction<Boolean> failure = new FutureAction<Boolean>() {
+            public void run() {                
+            }
+        };
+        
+        FutureAction<Boolean> dependent = new FutureAction<Boolean>() {
+            public void run() {
+                failure.result();
+                throw new AssertionError("Unexpected success");
+            }
+        };
+        
+        try {
+            dependent.result();
+        } catch(IncompleteResultException e) {
+            // Squash
+        }
+        failure.failWithException(new UnsupportedOperationException());
+        dependent.result();
+        
+    }
+    
+    @Test
+    public void canCatchException() {
+        final FutureAction<Boolean> failure = new FutureAction<Boolean>() {
+            public void run() {                
+            }
+        };
+        
+        final FutureAction<Boolean> catcher = new FutureAction<Boolean>() {
+
+            public void run() {
+                boolean result = false;
+                try {
+                    failure.result();
+                } catch(UnsupportedOperationException e) {
+                    result = true;
+                }
+                returnResult(result);
+            }
+            
+            @Override
+            public Throwable catchException(Throwable t) {
+                if (t instanceof UnsupportedOperationException) return null;
+                return t;
+            }
+        };
+        
+        FutureAction<Boolean> dependent = new FutureAction<Boolean>() {
+            public void run() {
+                returnResult(catcher.result());                
+            }
+        };
+        
+        try {
+            dependent.result();
+        } catch(IncompleteResultException e) {
+            // Squash
+        }
+        failure.failWithException(new UnsupportedOperationException());
+        assertTrue(dependent.result());
         
     }
         

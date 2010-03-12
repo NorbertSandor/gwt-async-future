@@ -5,6 +5,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
+
 import static com.googlecode.future.ExecutionException.returnIfCheckedThrowIfUnchecked;
 
 /**
@@ -32,13 +33,31 @@ import static com.googlecode.future.ExecutionException.returnIfCheckedThrowIfUnc
  */
 public class FutureResult<T> implements CancellableAsyncCallback<T>, Future<T> {
     
+    private String name;
+    
+    public FutureResult() { }
+    
+    public FutureResult(String name) {
+        this.name = name;
+    }
+
     private T value = null;
     
     private Throwable exception = null;
     
     private LinkedHashSet<AsyncCallback<T>> listeners = new LinkedHashSet<AsyncCallback<T>>();
     
-    private enum State { SUCCEEDED, FAILED, INCOMPLETE, CANCELLED }
+    private enum State { 
+
+        SUCCEEDED, FAILED, INCOMPLETE, CANCELLED;
+
+        @Override
+        public String toString() {
+            return name().toLowerCase();
+        }
+
+
+    }
     
     private State state = State.INCOMPLETE;
 
@@ -46,8 +65,11 @@ public class FutureResult<T> implements CancellableAsyncCallback<T>, Future<T> {
     public T result() throws IncompleteResultException, ExecutionException,
         CancelledException {
         switch(state) {
-        case INCOMPLETE: throw new IncompleteResultException(this);
-        case FAILED: throw new ExecutionException(returnIfCheckedThrowIfUnchecked(exception));
+        case INCOMPLETE: throw new IncompleteResultException(this, "Future result not yet set for " + this);
+        case FAILED: {
+            Throwable checkedException = returnIfCheckedThrowIfUnchecked(exception);
+            throw new ExecutionException(checkedException);
+        }
         case CANCELLED: throw new CancelledException();
         case SUCCEEDED: return value;
          
@@ -90,7 +112,8 @@ public class FutureResult<T> implements CancellableAsyncCallback<T>, Future<T> {
     /** {@inheritDoc} */
     public void failWithException(Throwable t) {
         if (isComplete()) {            
-            throw new IllegalStateException("Cannot set Future state twice");
+            throw new IllegalStateException("Cannot fail when already complete for " + this,
+                    t);
         }
         state = State.FAILED;
         this.exception = t;
@@ -99,9 +122,10 @@ public class FutureResult<T> implements CancellableAsyncCallback<T>, Future<T> {
     }
 
     /** {@inheritDoc} */
-    public void returnResult(T value) {
+    public void setResult(T value) {
         if (isComplete()) {            
-            throw new IllegalStateException("Cannot set Future state twice");
+            throw new IllegalStateException("Cannot set result when already complete for " + 
+                    this);
         }
         state = State.SUCCEEDED;
         this.value = value;
@@ -110,8 +134,8 @@ public class FutureResult<T> implements CancellableAsyncCallback<T>, Future<T> {
     }
 
     /** {@inheritDoc} */
-    public void returnEmpty() {
-        returnResult(null);
+    public void setEmpty() {
+        setResult(null);
     }
 
     
@@ -142,7 +166,7 @@ public class FutureResult<T> implements CancellableAsyncCallback<T>, Future<T> {
      * result.  May be overridden by subclasses.
      */
     public void onSuccess(T value) {
-        returnResult(value);
+        setResult(value);
     }
     
     /**
@@ -201,12 +225,63 @@ public class FutureResult<T> implements CancellableAsyncCallback<T>, Future<T> {
     
     /** {@inheritDoc} */
     public void eval() {
+        start();
+    }
+    
+    /** {@inheritDoc} */
+    public void start() {
         addCallback(null);
     }
+
 
     /** {@inheritDoc} */
     public CancellableAsyncCallback<T> callback() {
         return this;
     }
+
+    /** {@inheritDoc} */
+    public String getName() {
+        return (name != null && !name.isEmpty()) ? name : synthesizeName();       
+    }
+
+    private String synthesizeName() {
+        return getFutureType() + "<" +
+                ((value != null) ? getSimpleName(value.getClass()) : "?")
+                + ">";
+    }
+
+    private String getSimpleName(Class<?> type) {
+        String className = type.getName();
+        int index = className.lastIndexOf('.');
+        if (index == -1) return className;
+        return className.substring(index);
+    }
+    
+    protected String getFutureType() {
+        return "FutureResult";
+        
+    }
+
+    /** {@inheritDoc} */
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        switch(state) {
+        case CANCELLED:
+            return getName() + " (cancelled)";            
+        case FAILED:            
+            return getName() + " (failed with cause:\n" + this.exception + ")";            
+        case INCOMPLETE:
+            return getName() + " (incomplete)";            
+        case SUCCEEDED:
+            return getName() + " (succeeded with result = " + value + ")";
+        }
+        throw new IllegalStateException();
+    }
+    
+    
 
 }
