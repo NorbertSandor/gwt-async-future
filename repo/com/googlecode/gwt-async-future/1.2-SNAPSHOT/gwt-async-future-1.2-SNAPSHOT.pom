@@ -21,12 +21,13 @@
 				<artifactId>gwt-maven-plugin</artifactId>
 				<version>1.2</version>
 				<configuration>
-					<compileTargets>
-						<value>com.googlecode.AsyncFuture</value>
-					</compileTargets>
-					<logLevel>DEBUG</logLevel>
-					<testSkip>${skipTests}</testSkip>
-				</configuration>
+                    <extraJvmArgs>-Dgwt.args=help -Xmx512M</extraJvmArgs>
+                    <logLevel>DEBUG</logLevel>
+                    <style>DETAILED</style>
+                    <testSkip>${skipTests}</testSkip>
+                    <testTimeOut>0</testTimeOut>
+                    <style>DETAILED</style>
+                </configuration>
 				<executions>
 					<execution>
 						<id>gwt-test</id>
@@ -45,6 +46,16 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.5</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/GwtTest*.java</exclude>
+                    </excludes>
+                    <forkedProcessTimeoutInSeconds>0</forkedProcessTimeoutInSeconds>
+                </configuration>
+            </plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
