@@ -1,9 +1,13 @@
-package com.googlecode.future;
+package com.googlecode.futuretests;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
+
+import com.googlecode.future.FutureAction;
+import com.googlecode.future.FutureResult;
+import com.googlecode.future.FutureSequencer;
 
 import static org.junit.Assert.*;
 import static com.googlecode.future.ConstantResult.constant;

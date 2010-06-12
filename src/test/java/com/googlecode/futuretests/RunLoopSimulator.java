@@ -1,9 +1,11 @@
-package com.googlecode.future;
+package com.googlecode.futuretests;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.googlecode.future.CancelledException;
+import com.googlecode.future.FutureResult;
 
 /**
  * Utility class that simulates running actions in a run loop.

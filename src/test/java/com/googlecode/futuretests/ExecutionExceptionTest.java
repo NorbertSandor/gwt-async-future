@@ -1,8 +1,10 @@
-package com.googlecode.future;
+package com.googlecode.futuretests;
 
 import java.io.IOException;
 
 import org.junit.Test;
+
+import com.googlecode.future.ExecutionException;
 
 public class ExecutionExceptionTest {
     @SuppressWarnings("unchecked")

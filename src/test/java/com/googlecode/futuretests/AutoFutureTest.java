@@ -1,6 +1,10 @@
-package com.googlecode.future;
+package com.googlecode.futuretests;
 
 import org.junit.Test;
+
+import com.googlecode.future.AutoFuture;
+import com.googlecode.future.AutoFutureAction;
+import com.googlecode.future.FutureAction;
 
 import static org.junit.Assert.*;
 import static com.googlecode.future.Auto.auto;

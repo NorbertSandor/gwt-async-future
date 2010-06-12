@@ -55,8 +55,6 @@ public class FutureResult<T> implements CancellableAsyncCallback<T>, Future<T> {
         public String toString() {
             return name().toLowerCase();
         }
-
-
     }
     
     private State state = State.INCOMPLETE;
@@ -254,7 +252,7 @@ public class FutureResult<T> implements CancellableAsyncCallback<T>, Future<T> {
         String className = type.getName();
         int index = className.lastIndexOf('.');
         if (index == -1) return className;
-        return className.substring(index);
+        return className.substring(index + 1);
     }
     
     protected String getFutureType() {

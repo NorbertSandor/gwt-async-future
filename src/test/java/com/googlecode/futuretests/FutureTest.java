@@ -1,6 +1,13 @@
-package com.googlecode.future;
+package com.googlecode.futuretests;
 
 import org.junit.Test;
+
+import com.googlecode.future.ConstantResult;
+import com.googlecode.future.ExecutionException;
+import com.googlecode.future.Future;
+import com.googlecode.future.FutureAction;
+import com.googlecode.future.FutureResult;
+import com.googlecode.future.IncompleteResultException;
 
 import static org.junit.Assert.*;
 
