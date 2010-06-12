@@ -81,6 +81,7 @@ public abstract class FutureAction<T> extends FutureResult<T> implements Runnabl
     private boolean isStarted = false;
     
     private boolean isRunning = false;
+ 
       
     public FutureAction() {        
     }
@@ -93,21 +94,21 @@ public abstract class FutureAction<T> extends FutureResult<T> implements Runnabl
     public void addCallback(AsyncCallback<T> callback) {        
         super.addCallback(callback);
         if (!isComplete() && !isStarted()) {
-            tryRunningTaskButIgnoreExceptions();
+            tryResult();
         }
     }
 
     @Override
-    public T result() {        
+    public T result() {
         if (isComplete()) return super.result();
-        
+                
         if (hasUnresolvedDependencies()) {
             throw new IncompleteResultException(this,
                     "Future (" + this + ") has unresolved dependency",
                     new IncompleteResultException(dependencies.iterator().next(), String.valueOf(this)));
         }
         
-        if (isStarted()) {
+        if (isStarted() && !recallRunOnResultRequested()) {
             throw new IncompleteResultException(this,
                     "Waiting for result to be set manually or by callback for " + this);
         }
@@ -116,9 +117,9 @@ public abstract class FutureAction<T> extends FutureResult<T> implements Runnabl
             throw new IncompleteResultException(this,
                 "Still executing run() for " + this);
         }
-
+        
         try {
-            setRunning(true);
+            setRunning(true);            
             run();            
             setStarted(true);
         } catch(IncompleteResultException e) {
@@ -136,6 +137,16 @@ public abstract class FutureAction<T> extends FutureResult<T> implements Runnabl
         return super.result();
     }
     
+    /**
+     * Indicates whether calling result multiple times should recall the run() method, or
+     * whether it should fail with an IncompleteResultException after the first time being run.
+     * 
+     * @return true if the run method should be recalled.
+     */
+    protected boolean recallRunOnResultRequested() {        
+        return false;
+    }
+
     @Override
     public void setResult(T value) {
         super.setResult(value);
@@ -166,7 +177,7 @@ public abstract class FutureAction<T> extends FutureResult<T> implements Runnabl
             return;
         }
         dependencies.remove(dependency);
-        tryRunningTaskButIgnoreExceptions();
+        tryResult();
     }
     
     
@@ -177,7 +188,7 @@ public abstract class FutureAction<T> extends FutureResult<T> implements Runnabl
             super.failWithException(rethrow);
             return;
         }
-        tryRunningTaskButIgnoreExceptions();
+        tryResult();
     }
     
     @Override
@@ -185,11 +196,11 @@ public abstract class FutureAction<T> extends FutureResult<T> implements Runnabl
         onCancel();
     }
 
-    private void setStarted(boolean b) {
+    protected void setStarted(boolean b) {
         isStarted = b;
     }
 
-    private boolean hasUnresolvedDependencies() {
+    protected boolean hasUnresolvedDependencies() {
         return dependencies.size() > 0;
     }
 
@@ -209,14 +220,17 @@ public abstract class FutureAction<T> extends FutureResult<T> implements Runnabl
 
                 public void onSuccess(Object result) {
                     dependencies.remove(dependency);                    
-                    tryRunningTaskButIgnoreExceptions();                    
+                    tryResult();                    
                 }
                 
             });
         }
     }
     
-    private void tryRunningTaskButIgnoreExceptions() {        
+    /**
+     * Try to evaluate result, but do not propogate exceptions.
+     */
+    protected void tryResult() {        
         try {
             result();
         } catch(Throwable t) {
@@ -293,7 +307,7 @@ public abstract class FutureAction<T> extends FutureResult<T> implements Runnabl
 
     @Override
     protected String getFutureType() {
-        return "ConstantResult";
+        return "FutureAction";
     }
 
 }

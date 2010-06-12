@@ -1,6 +1,8 @@
-package com.googlecode.future;
+package com.googlecode.futuretests;
 
 import org.junit.Test;
+
+import com.googlecode.future.FutureDelegationChain;
 
 import static org.junit.Assert.*;
 import static com.googlecode.future.ConstantResult.*;
