@@ -4,7 +4,7 @@
 	<groupId>com.googlecode</groupId>
 	<artifactId>gwt-async-future</artifactId>
 	<name>GWT Async Future</name>
-	<version>1.2-SNAPSHOT</version>
+	<version>1.2</version>
 	<description>Alternative approach to GWT AsyncCallback using functional programming techniques</description>
 	<ciManagement>
 		<url>http://code.google.com/p/gwt-async-future/issues/list</url>
